@@ -1,7 +1,6 @@
 if(process.env.NODE_ENV!="production"){
     require("dotenv").config();
 }
-console.log(process.env.SECRET);
 
 const express = require("express");
 const app = express();
@@ -31,7 +30,7 @@ main().then(()=>{
 });
 
 async function main() {
-    mongoose.connect(dbUrl);
+    await mongoose.connect(dbUrl);
 }
 
 app.set("view engine" , "ejs");
@@ -48,7 +47,7 @@ const store = MongoStore.create({
     touchAfter:  24 * 3600,
 });
 
-store.on("error" , ()=>{
+store.on("error" , (err)=>{
     console.log("ERROR in MONGO SESSION STORE" , err);
 });
 
