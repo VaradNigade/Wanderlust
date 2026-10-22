@@ -8,6 +8,9 @@ const mongoose = require("mongoose");
 const path = require("path");
 
 const dbUrl = process.env.ATLASDB_URL;
+if(!dbUrl || !process.env.SECRET){
+    console.error("Missing env vars: ATLASDB_URL and/or SECRET");
+}
 const methodOverride = require("method-override");
 const ejsMate = require("ejs-mate"); // used to create layout for templates
 const ExpressError = require("./utils/ExpressError.js");
@@ -57,7 +60,7 @@ const sessionOptions = {
     resave: false,
     saveUninitialized: true,
     cookie: {
-        expires: Date.now() + 7*24*60*60*1000 ,
+        expires: new Date(Date.now() + 7*24*60*60*1000),
         maxAge: 7*24*60*60*1000 ,
         httpOnly : true,
     },
@@ -103,8 +106,15 @@ app.use((req,res,next)=>{
 
 // middleware to handle error
 app.use((err, req , res, next)=>{
+    console.error("APP ERROR:", err);
     let {statusCode=500 , message="Something went wrong!"} = err;
-    res.status(statusCode).render("error.ejs" , {message});
+    if(res.headersSent){ return next(err); }
+    res.status(statusCode).render("error.ejs" , {
+        message,
+        currUser: req.user || null,
+        success: [],
+        error: [],
+    });
 });
 
 
